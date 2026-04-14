@@ -39,7 +39,8 @@ try
         }
         else
         {
-            options.UseSqlServer( connectionString );
+            options.UseSqlServer( connectionString, sqlServerOptions => 
+                sqlServerOptions.EnableRetryOnFailure()  );
         }
     } );
 
