@@ -2,54 +2,54 @@ using Microsoft.EntityFrameworkCore;
 using TimeTableWebAPI.Data;
 using TimeTableWebAPI.Services;
 
-var builder = WebApplication.CreateBuilder( args );
-
-var connectionString = builder.Configuration.GetConnectionString( "DefaultConnection" );
-
-// Fallback to AzureSqlConnection if DefaultConnection is not provided in a non-dev environment
-if ( !builder.Environment.IsDevelopment() && string.IsNullOrEmpty( connectionString ) )
-{
-    connectionString = builder.Configuration.GetConnectionString( "AzureSqlConnection" );
-}
-
-// Ensure the connection string is provided for production
-if ( !builder.Environment.IsDevelopment() && string.IsNullOrEmpty( connectionString ) )
-{
-    throw new InvalidOperationException( "DefaultConnection is not configured for the production environment." );
-}
-
-// Add services to the container.
-builder.Services.AddCors( options =>
-{
-    options.AddDefaultPolicy( policy =>
-    {
-        policy.AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    } );
-} );
-
-builder.Services.AddDbContext<AppDbContext>( options =>
-{
-    if ( builder.Environment.IsDevelopment() )
-    {
-        options.UseSqlite( connectionString );
-    }
-    else
-    {
-        options.UseSqlServer( connectionString );
-    }
-} );
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-builder.Services.AddHttpClient();
-builder.Services.AddHostedService<TimetableScraperService>();
-builder.Services.AddScoped<ITimetableService, TimetableService>();
-
 try
 {
+    var builder = WebApplication.CreateBuilder( args );
+
+    var connectionString = builder.Configuration.GetConnectionString( "DefaultConnection" );
+
+    // Fallback to AzureSqlConnection if DefaultConnection is not provided in a non-dev environment
+    if ( !builder.Environment.IsDevelopment() && string.IsNullOrEmpty( connectionString ) )
+    {
+        connectionString = builder.Configuration.GetConnectionString( "AzureSqlConnection" );
+    }
+
+    // Ensure the connection string is provided for production
+    if ( !builder.Environment.IsDevelopment() && string.IsNullOrEmpty( connectionString ) )
+    {
+        throw new InvalidOperationException( "DefaultConnection is not configured for the production environment." );
+    }
+
+    // Add services to the container.
+    builder.Services.AddCors( options =>
+    {
+        options.AddDefaultPolicy( policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        } );
+    } );
+
+    builder.Services.AddDbContext<AppDbContext>( options =>
+    {
+        if ( builder.Environment.IsDevelopment() )
+        {
+            options.UseSqlite( connectionString );
+        }
+        else
+        {
+            options.UseSqlServer( connectionString );
+        }
+    } );
+
+    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+    builder.Services.AddOpenApi();
+
+    builder.Services.AddHttpClient();
+    builder.Services.AddHostedService<TimetableScraperService>();
+    builder.Services.AddScoped<ITimetableService, TimetableService>();
+
     var app = builder.Build();
 
     // Log the environment and connection string presence
@@ -92,5 +92,7 @@ catch ( Exception ex )
 {
     // Ensure the exception is logged to console during startup
     Console.WriteLine( $"Fatal error during app startup: {ex}" );
+    // Log to a file even if logger is not ready
+    try { File.AppendAllText("startup_fatal_error.log", $"{DateTime.Now}: {ex}\n"); } catch {}
     throw;
 }

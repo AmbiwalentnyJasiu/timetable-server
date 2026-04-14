@@ -47,7 +47,7 @@ public class TimetableScraperService(
     doc.LoadHtml( response );
 
     var linkNode = doc.DocumentNode.SelectSingleNode( "//h2[contains(text(), 'STUDIA NIESTACJONARNE')]/following::h4[contains(., 'Informatyka')]/following::a[contains(@href, '.xls')]" )
-                   ?? doc.DocumentNode.SelectSingleNode( "//a[contains(@href, 'NIESTACJONARNE') and contains(@href, 'INFORMATYKA') and contains(@href, '.xls')]" );
+                   ?? doc.DocumentNode.SelectSingleNode( "//a[contains(@href, 'NIESTACJONARNE') and contains(@href, 'INFORMATYKA') and (contains(@href, '.xls') or contains(@href, '.xlsx'))]" );
 
     if ( linkNode != null )
     {
@@ -121,15 +121,26 @@ public class TimetableScraperService(
 
             // Extract date (Heuristic: usually in column 1 (index 0) or nearby)
             // It might be merged over multiple rows, so we search up or keep it.
-            object? dateObj = row[0];
+            object? dateObj = null;
+            if ( table.Rows[rowIdx].ItemArray.Length > 0 )
+            {
+                dateObj = table.Rows[rowIdx][0];
+            }
+
             if ( dateObj == null || string.IsNullOrWhiteSpace( dateObj.ToString() ) )
             {
                 // Try looking back up for merged cell value
                 for (int d = rowIdx; d >= 7; d--)
                 {
-                    var dRow = table.Rows[d];
-                    dateObj = dRow[0];
-                    if (dateObj != null && !string.IsNullOrWhiteSpace(dateObj.ToString())) break;
+                    if ( table.Rows[d].ItemArray.Length > 0 )
+                    {
+                        var dRowValue = table.Rows[d][0];
+                        if (dRowValue != null && !string.IsNullOrWhiteSpace(dRowValue.ToString()))
+                        {
+                            dateObj = dRowValue;
+                            break;
+                        }
+                    }
                 }
             }
 
