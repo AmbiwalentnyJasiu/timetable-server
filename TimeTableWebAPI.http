@@ -1,0 +1,16 @@
+@TimeTableWebAPI_HostAddress = https://localhost:7254
+
+GET {{TimeTableWebAPI_HostAddress}}/timetable
+Accept: application/json
+
+###
+
+GET {{TimeTableWebAPI_HostAddress}}/timetable/group/CY1
+Accept: application/json
+
+###
+
+GET {{TimeTableWebAPI_HostAddress}}/timetable/group/CY3/weekend/2026-04-18
+Accept: application/json
+
+###
